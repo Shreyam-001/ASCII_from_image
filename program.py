@@ -1,51 +1,35 @@
-import PIL
+import requests
+from PIL import Image
 
-# ascii characters used
-CHARACTERS = ["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", "."]
+# Define ASCII characters to use for the conversion
+ASCII_CHARS = [' ', '.', ':', '-', '=', '+', '*', '#', '%', '@']
 
-# resize image according to a new width
-def image_resize(image, new_width=100):
+# Define the size of the output ASCII art
+WIDTH = 100
+
+# Function to convert an image to ASCII art
+def convert_to_ascii(image):
+    # Load the image and resize it to the desired width
+    image = Image.open(image)
     width, height = image.size
-    ratio = height/width
-    new_height = int(new_width * ratio)
-    resized_image = image.resize((new_width, new_height))
-    return(resized_image)
+    ratio = height / width
+    new_height = int(WIDTH * ratio * 0.55)
+    resized_image = image.resize((WIDTH, new_height))
 
-# convert each pixel to grayscale
-def grayify(image):
-    grayscale_image = image.convert("L")
-    return(grayscale_image)
-    
-# convert pixels to a string of ascii characters
-def pixels_to_ascii(image):
-    pixels = image.getdata()
-    characters = "".join([CHARACTERS[pixel//25] for pixel in pixels])
-    return(characters)    
+    # Convert the resized image to grayscale
+    grayscale_image = resized_image.convert('L')
 
-def main(new_width=100):
-    # attempt to open image from user-input
-    path = input("Enter a valid pathname to an image:\n")
-    try:
-        image = PIL.Image.open(path)
-    except:
-        print(path, " is not a valid pathname to an image.")
-        return
-  
-    # convert image to ascii    
-    new_image_data = pixels_to_ascii(grayify(image_resize(image)))
-    
-    # format
-    pixel_count = len(new_image_data)  
-    ascii_image = "\n".join([new_image_data[index:(index+new_width)] for index in range(0, pixel_count, new_width)])
-    
-    # print result
-    print(ascii_image)
-    
-    # save result to "ascii_image.txt"
-    with open("ascii_image.txt", "w") as f:
-        f.write(ascii_image)
- 
-# run program
-main()
+    # Generate the ASCII art
+    pixels = grayscale_image.getdata()
+    ascii_chars = [ASCII_CHARS[pixel // 25] for pixel in pixels]
+    ascii_art = ''.join(ascii_chars)
 
+    # Return the ASCII art
+    return ascii_art
 
+# Prompt the user for an image URL and convert it to ASCII art
+url = input('Enter the image URL: ')
+response = requests.get(url, stream=True)
+image = Image.open(response.raw)
+ascii_art = convert_to_ascii(image)
+print(ascii_art)
